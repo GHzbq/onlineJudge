@@ -6,6 +6,8 @@
 #include <boost/algorithm/string.hpp>
 #include <sys/time.h>
 
+#define __DEBUG_ON__ 0
+
 namespace util
 {
     class timeUtil
