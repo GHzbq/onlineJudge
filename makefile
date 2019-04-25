@@ -1,7 +1,7 @@
 all: oj_server
 
-oj_server:oj_server.cpp oj_model.hpp oj_view.hpp
-	g++ oj_server.cpp -o oj_server -std=c++11 -lpthread\
+oj_server: ./serverSrc/oj_server.cpp ./serverSrc/oj_model.hpp ./serverSrc/oj_view.hpp
+	g++ ./serverSrc/oj_server.cpp -o oj_server -std=c++11 -lpthread\
 		-ljsoncpp -lctemplate 
 
 main: main.cpp httplib.h compiler.hpp
