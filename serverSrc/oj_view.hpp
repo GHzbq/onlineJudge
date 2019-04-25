@@ -21,7 +21,7 @@ public:
             tableDict->SetValue("star", question.star);
         }
         google::Template* tpl;
-        tpl = google::Template::GetTemplate("./wwroot/all_questions.html", google::DO_NOT_STRIP);
+        tpl = google::Template::GetTemplate("./template/all_questions.html", google::DO_NOT_STRIP);
         tpl->Expand(html,&dict);
 
     }
@@ -37,7 +37,7 @@ public:
         dict.SetValue("header", question.header_cpp);
         
         google::Template* tpl;
-        tpl = google::Template::GetTemplate("./wwroot/details.html", google::DO_NOT_STRIP);
+        tpl = google::Template::GetTemplate("./template/question.html", google::DO_NOT_STRIP);
         tpl->Expand(html,&dict);
     }
 

@@ -9,6 +9,8 @@
 #include <jsoncpp/json/json.h>
 #include "util.hpp"
 
+#define TMP_FILE "./tmp_file/"
+
 class compiler
 {
 public:
@@ -16,32 +18,57 @@ public:
     // 1. 源代码文件
     static std::string srcPath(const std::string& name)
     {
-        return "./tmp_file/" + name + ".cpp";
+        std::string ret = TMP_FILE + name + ".cpp";
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "srcPath = " << ret << std::endl;
+#endif
+        return ret;
     }
     // 2. 编译出错文件
     static std::string compileErrorPath(const std::string& name)
     {
-        return "./tmp_file/" + name + ".compileError";
+        std::string ret = TMP_FILE + name + ".compileError";
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "compileErrorPath = " << ret << std::endl;
+#endif
+        return ret;
     }
     // 3. 可执行程序文件
     static std::string exePath(const std::string& name)
     {
-        return "./tmp_file/" + name + ".exe";
+        std::string ret = TMP_FILE + name + ".exe";
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "exePath = " << ret << std::endl;
+#endif
+        return ret;
     }
     // 4. 标准输入文件
     static std::string stdinPath(const std::string& name)
     {
-        return "./tmp_file/" + name + ".stdin";
+        std::string ret = TMP_FILE + name + ".stdin";
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "stdinPath = " << ret << std::endl;
+#endif
+        return ret;
+
     }
     // 5. 标准输出文件
     static std::string stdoutPath(const std::string& name)
     {
-        return "./tmp_file/" + name + ".stdout";
+        std::string ret = TMP_FILE + name + ".stdout";
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "stdoutPath = " << ret << std::endl;
+#endif
+        return ret;
     }
     // 6. 标准错误文件
     static std::string stderrPath(const std::string& name)
     {
-        return "./tmp_file/" + name + ".stderr";
+        std::string ret = TMP_FILE + name + ".stderr";
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "stderrPath = " << ret << std::endl;
+#endif
+        return ret;
     }
 
     static bool compilerAndRun(const Json::Value& req/* 输入型参数 */, Json::Value* resp/* 输出型参数 */)
@@ -55,7 +82,14 @@ public:
             return false;
         }
         const std::string& code = req["code"].asString();
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "code = " << code << std::endl;
+#endif
         std::string fileName = writeTmpFile(code);
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "filename = " << fileName << std::endl;
+#endif
+ 
         if(!req["stdin"].empty())
         {
             ;

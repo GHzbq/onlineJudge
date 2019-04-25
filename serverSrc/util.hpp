@@ -29,7 +29,8 @@ namespace util
         INFO,
         WARNING,
         ERROR,
-        FATAL
+        FATAL,
+        DEBUG
     };
 
     inline std::ostream& log(logLevel level, std::string fileName, int fileNo)
