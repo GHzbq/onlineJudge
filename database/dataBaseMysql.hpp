@@ -11,7 +11,7 @@
 #include <cstdarg> /* 解析可变参数列表 */
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
-#include "../util.hpp"
+#include "../serverSrc/util.hpp"
 
 /* 命名空间 */
 namespace dataBaseMysql 
