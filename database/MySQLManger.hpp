@@ -278,6 +278,8 @@ public:
             }
         }
 
+        // 再次检查数据库是否能够连上
+
     }
 
     std::string getHost() const
