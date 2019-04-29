@@ -270,7 +270,7 @@ public:
         }
 
         // 检查库是否存在
-        if(!isDNExist())
+        if(!isDBExist())
         {
             if(!createDB())
             {
@@ -278,8 +278,27 @@ public:
             }
         }
 
-        // 再次检查数据库是否能够连上
+        // 再次确定是否可以链接上数据库
+        _pConnect.reset(new dataBaseMysql::CDatabaseMysql());
+        if(!_pConnect->initialize(_strHost, _strUser, _strPassword, _strDBName) != 0)
+        {
+            LOG(util::FATAL) << "CDatabaseMysql init error" << std::endl;
+            return false;
+        }
 
+        // 2. 检查库中表是否正确
+        for(size_t i = 0; i < _vecTableInfo.size(); ++i)
+        {
+            STableInfo& table = _vecTableInfo[i];
+            if(!checkTable(table))
+            {
+                LOG(util::FATAL) << "table check faild" << std::endl;
+                return false;
+            }
+        }   
+
+        _pConnect.reset();
+        return true;
     }
 
     std::string getHost() const
@@ -308,20 +327,180 @@ public:
     }
 
 private:
-    bool isDNExist()
-    {}
+    bool isDBExist()
+    {
+        if(nullptr == _pConnect)
+        {
+            return false;
+        }
+
+        dataBaseMysql::QueryResult* pResult = _pConnect->query("show databases;");
+        if(nullptr == pResult)
+        {
+            LOG(util::INFO) << "isDBExist(), no database(" << _strDBName << ")" << std::endl;
+            return false;
+        }
+
+        dataBaseMysql::Field* pRow = pResult->fetch();
+        while(pRow != nullptr)
+        {
+            std::string name = pRow[0].getString();
+            if(name == _strDBName)
+            {
+                LOG(util::INFO) << "isDBExist(), find database(" << _strDBName << ")";
+                pResult->endQuery();
+                return true;
+            }
+
+            if(pResult->nextRow() == false)
+            {
+                break;
+            }
+            pRow = pResult->fetch();
+        }
+
+        LOG(util::INFO) << "isDBExist(), no database(" << _strDBName << ")" << std::endl;
+        pResult->endQuery();
+        return false;
+    }
 
     bool createDB()
-    {}
+    {
+        if(nullptr == _pConnect)
+        {
+            return false;
+        }
+
+        uint32_t uAffectedCount = 0;
+        int nErrno = 0;
+
+        std::stringstream ss;
+        ss << "create database " << _strDBName << ";";
+        if(_pConnect->execute(ss.str().c_str(), uAffectedCount, nErrno))
+        {
+            if(uAffectedCount == 1)
+            {
+                LOG(util::INFO) << "createDB(), create database "
+                    << _strDBName << " success" << std::endl;
+                return true;
+            }
+        }
+        else
+        {
+            LOG(util::ERROR) << "createDB(), create database " 
+                << _strDBName << " failed, errno = " << nErrno << std::endl;
+            return false;
+        }
+
+        return false;
+    }
 
     bool checkTable(const STableInfo& tableInfo)
-    {}
+    {
+        if(nullptr == _pConnect)
+        {
+            return false;
+        }
+
+        if(tableInfo._strName.find_first_not_of("\t\r\n ") == std::string::npos)
+        {
+            LOG(util::WARNING) << "checkTable(), table info invalid";
+            return false;
+        }
+
+        std::stringstream ss;
+        ss << "desc " << tableInfo._strName << ";";
+        dataBaseMysql::QueryResult* pResult = _pConnect->query(ss.str());
+        if(nullptr == pResult)
+        {
+            LOG(util::INFO) << "checkTable(), no table " << tableInfo._strName << " , begin create..." << std::endl;;
+            if(createTable(tableInfo))
+            {
+                LOG(util::INFO) << "checkTable(), " << tableInfo._strName << " , end create..." << std::endl;
+                return true;
+            }
+            return false;
+        }
+        else
+        {
+            std::map<std::string, std::string> mapOldTable;
+            dataBaseMysql::Field* pRow = pResult->fetch();
+            while(pRow != nullptr)
+            {
+                std::string name = pRow[0].getString();
+                std::string type = pRow[1].getString();
+                mapOldTable[name] = type;
+
+                if(pResult->nextRow() == false)
+                {
+                    break;
+                }
+
+                pRow = pResult->fetch();
+            }
+
+            pResult->endQuery();
+            for(std::map<std::string, STableField>::const_iterator it = tableInfo._mapFiled.begin();
+                it != tableInfo._mapFiled.end(); ++it)
+            {
+                STableField field = it->second;
+                if(mapOldTable.find(field._strName) == mapOldTable.end())
+                {
+                    std::stringstream ss;
+                    ss << "alter table " << tableInfo._strName << " add column "
+                        << field._strName << " " << field._strType << ";";
+
+                    const std::string& sql = ss.str();
+                    if(_pConnect->execute(sql.c_str()))
+                    {
+                        LOG(util::INFO) << sql << std::endl;
+                        continue;
+                    }
+                    else 
+                    {
+                        LOG(util::ERROR) << "checkTable() faild : " << sql << std::endl;
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
 
     bool createTable(const STableInfo& tableInfo)
-    {}
+    {
+        if(tableInfo._mapFiled.size() == 0)
+        {
+            LOG(util::ERROR) << "createTable(), table info invalid, " << tableInfo._strName << std::endl;
+            return false;
+        }
 
-    bool updateTable(const STableInfo& tableInfo)
-    {}
+        std::stringstream ss;
+        ss << "CREATE TABLE IF NOT EXISTS " << tableInfo._strName << " (";
+
+        for(std::map<std::string, STableField>::const_iterator it = tableInfo._mapFiled.begin();
+            it != tableInfo._mapFiled.end(); ++it)
+        {
+            if(it != tableInfo._mapFiled.begin())
+            {
+                ss << ", ";
+            }
+
+            STableField field = it->second;
+            ss << field._strName << " " << field._strType;
+        }
+
+        ss << tableInfo._strKeyString << ";";
+        if(_pConnect->execute(ss.str().c_str()))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool updateTable(const STableInfo& tableInfo);
 
 protected:
     std::shared_ptr<dataBaseMysql::CDatabaseMysql> _pConnect;
