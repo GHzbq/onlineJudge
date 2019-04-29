@@ -1,3 +1,6 @@
+/*
+ * 核心类：mysqlManager
+ * */
 #pragma once
 
 #include <memory>
