@@ -36,6 +36,7 @@ struct STableInfo
 public:
     STableInfo()
     {}
+
     std::string strEngineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8 comment '设置存储引擎为MyISAM 字符集为utf8'";
 
     STableInfo(std::string strName)
@@ -258,6 +259,7 @@ public:
 public:
     bool init(const char* host, const char* user, const char* password, const char* dbName)
     {
+
         _strHost = host;
         _strUser = user;
         // 数据库密码可能为空
@@ -494,7 +496,24 @@ private:
             ss << field._strName << " " << field._strType;
         }
 
-        ss << tableInfo._strKeyString << ";";
+        if(tableInfo._strKeyString != "")
+        {
+            ss << ", " << tableInfo._strKeyString ;
+        }
+
+        if(tableInfo._strEndineAndCharSet != "")
+        {
+            ss << ") " << tableInfo._strEndineAndCharSet << ";";
+        }
+        else
+        {
+            ss << ")default charset = utf8, ENGINE = InnoDB;";
+        }
+
+#if __DEBUG_ON__ 
+        std::cout << "@@@ sql: " << ss.str() << std::endl;
+#endif
+
         if(_pConnect->execute(ss.str().c_str()))
         {
             return true;
