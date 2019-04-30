@@ -1,4 +1,9 @@
-all: oj_server
+all: ojServer
+
+ojServer: ./serverSrc/main.cpp 
+	g++ ./serverSrc/main.cpp -o ojServer -std=c++11 -lpthread\
+		-ljsoncpp -lctemplate \
+		-L/usr/lib64/mysql -lmysqlclient  -lm -lrt -ldl\
 
 oj_server: ./serverSrc/oj_server.cpp ./serverSrc/oj_model.hpp ./serverSrc/oj_view.hpp
 	g++ ./serverSrc/oj_server.cpp -o oj_server -std=c++11 -lpthread\
