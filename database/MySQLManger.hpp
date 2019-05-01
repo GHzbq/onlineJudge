@@ -65,8 +65,8 @@ public:
             info._mapFiled["solution_id"] = { "solution_id", "int(11) NOT NULL DEFAULT 0 comment '题目ID'", "int(11)"};
             info._mapFiled["error"] = {"error", "text comment '错误信息'", "text"};
 
-            info._strKeyString = "PAIMARY KEY (solution_id) comment '将 solution_id 设置为主键'";
-            info._strEndineAndCharSet = "ENGIE=MyISAM DEFAULT CHARSET=utf8 comment '设置存储引擎为 MyISAM 字符集为 utf8'";
+            info._strKeyString = "PRIMARY KEY (solution_id) comment '将 solution_id 设置为主键'";
+            info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8 comment '设置存储引擎为 MyISAM 字符集为 utf8'";
 
             _vecTableInfo.push_back(info);
         }
