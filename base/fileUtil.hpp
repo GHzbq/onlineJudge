@@ -102,6 +102,9 @@ namespace FileUtil
                                 // st_size: total size, in bytes 
                                 *fileSize = statBuf.st_size;
                                 // 将 content 重置大小
+                                // 读取的最大字节数
+                                // 如果 maxSize 小，就读取 maxSize 
+                                // 如果该文件的大小 *fileSize < maxSize 那就只读取 *fileSize大小数据
                                 content->reserve(static_cast<int>(std::min(static_cast<int64_t>(maxSize), *fileSize)));
                             }
                             // directory? 目录
@@ -133,6 +136,8 @@ namespace FileUtil
                     while(content->size() < static_cast<size_t>(maxSize))
                     {
                         size_t toRead = std::min(static_cast<size_t>(maxSize)-content->size(), sizeof(_buf));
+                        // read系统调用，返回实际读到的字节数
+                        // 如果 read 失败,read函数返回 -1 并设置 errno 
                         ssize_t n = ::read(_fd, _buf, toRead);
                         if(n > 0)
                         {
@@ -140,6 +145,7 @@ namespace FileUtil
                         }
                         else
                         {
+                            // read 失败
                             if(n < 0)
                             {
                                 err = errno;
