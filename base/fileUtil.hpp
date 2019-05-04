@@ -196,7 +196,7 @@ namespace FileUtil
 
     template<typename String>
         int readFile(const std::string& fileName,
-                     int maxSize,
+                     const int&  maxSize,
                      String  * content,
                      int64_t * fileSize = nullptr,
                      int64_t * modifyTime = nullptr,
@@ -207,12 +207,12 @@ namespace FileUtil
         }
 
     template int readFile(const std::string& filename,
-                          int maxSize,
+                          const int& maxSize,
                           std::string* content,
                           int64_t*, int64_t*, int64_t*);
 
     template int ReadSmallFile::readToString(
-                                             int maxSize,
+                                             const int& maxSize,
                                              std::string* content,
                                              int64_t*, int64_t*, int64_t*);
 
