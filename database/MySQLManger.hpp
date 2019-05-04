@@ -1,5 +1,8 @@
 /*
+ * 实现对mysql的管理
  * 核心类：mysqlManager
+ *
+ * STableField类：
  * */
 #pragma once
 
@@ -352,7 +355,7 @@ private:
             std::string name = pRow[0].getString();
             if(name == _strDBName)
             {
-                LOG(util::INFO) << "isDBExist(), find database(" << _strDBName << ")";
+                LOG(util::INFO) << "isDBExist(), find database(" << _strDBName << ")" << std::endl;;
                 pResult->endQuery();
                 return true;
             }
