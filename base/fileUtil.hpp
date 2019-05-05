@@ -121,9 +121,10 @@ namespace FileUtil
                                 *modifyTime = statBuf.st_mtime;
                             }
 
-                            // time of last status change 上次文件状态改变时间？
+                            // 
                             if(createTime)
                             {
+                                // st_ctime: time of last status change 上次文件状态改变时间？
                                 *createTime = statBuf.st_ctime;
                             }
                         }
@@ -135,19 +136,23 @@ namespace FileUtil
 
                     while(content->size() < static_cast<size_t>(maxSize))
                     {
+                        // toRead 保存需要读取的大小
+                        // static_cast c++11的类型转换 基本可以实现所有的隐式类型转换
                         size_t toRead = std::min(static_cast<size_t>(maxSize)-content->size(), sizeof(_buf));
                         // read系统调用，返回实际读到的字节数
                         // 如果 read 失败,read函数返回 -1 并设置 errno 
                         ssize_t n = ::read(_fd, _buf, toRead);
                         if(n > 0)
                         {
+                            // 如果 read 函数读到了内容 就把buf里的内容给追加到 content 末尾
                             content->append(_buf, n);
                         }
                         else
-                        {
+                        {// 其他情况，可能是读到文件末尾，也可能是出错了
                             // read 失败
                             if(n < 0)
                             {
+                                // 设置 errno
                                 err = errno;
                             }
                             break;
@@ -155,6 +160,7 @@ namespace FileUtil
                     }
                 }
 
+                // 将错误码返回
                 return err;
             }
 
