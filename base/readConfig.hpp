@@ -1,3 +1,7 @@
+/*
+ * fileName: ReadConfig.hpp
+ * 核心类是 ReadConfig 负责读取配置文件 并解析  存储在 map 里
+ * */
 #pragma once
 
 #include <iostream>
@@ -9,6 +13,7 @@
 class ReadConfig
 {
 public:
+    // 构造函数 加载配置文件
     ReadConfig(const char* fileName)
     {
         loadFile(fileName);
@@ -17,6 +22,7 @@ public:
     ~ReadConfig()
     {}
 
+    // 将根据 key 获取对应的 value
     char* getConfigName(const char* name)
     {
         if(!_isReadOk)
@@ -35,6 +41,7 @@ public:
         return value;
     }
 
+    // 设置某个配置的值
     int setConfigValue(const char* name, const char* value)
     {
         if(!_isReadOk)
@@ -55,10 +62,14 @@ public:
         return writeFile();
     }
 private:
+    // 负责加载配置文件，读取每一行，解析，并将解析出来的键值对存储在 map 中
     void loadFile(const char* fileName)
     {
+        // 操作之前，先将 map 清空
         _config_map.clear();
+        // 保存文件名
         _config_file.append(fileName);
+        // 以只读方式打开文件
         FILE* fp = ::fopen(fileName, "r");
         if(!fp)
             return;
@@ -83,6 +94,7 @@ private:
             if(::strlen(buf) == 0)
                 continue;
 
+            // 解析一行
             parseLine(buf);
         }
 
@@ -127,14 +139,23 @@ private:
     void parseLine(char* line)
     {
         char* p = strchr(line, '=');
+        // 不是键值对结构，就直接返回吧
         if(p == nullptr)
             return;
 
+        // p 位置本来是 '=' 的位置 将其替换为 '\0' 
+        // 这样就把原来的字符串分割为两个
+        // line 标记 key 字符串
+        // p+1  标记 value 字符串
         *p = '\0';
+
+        // 调用 trimSpace 函数处理空格 使拿到的是一个完整的，不带空格的 key
         char* key = trimSpace(line);
+        // 调用 trimSpace 函数 处理空格
         char* value = trimSpace(p+1);
         if(key && value)
         {
+            // 当 key 和 value 同时存在的时候，才插入到 map 中
             _config_map.insert(std::make_pair(key, value));
         }
     }
@@ -142,6 +163,7 @@ private:
     char* trimSpace(char* name)
     {
         // remove starting space or tab 
+        // 删除起始位置的 空格 和 tab 键
         char* startPos = name;
         while((*startPos == ' ') || (*startPos) == '\t')
         {
@@ -149,6 +171,7 @@ private:
         }
 
         // remove ending space or tab
+        // 删除末尾位置的 空格 和 tab 键
         char* endPos = name + ::strlen(name) - 1;
         while((*endPos == ' ') || (*endPos == '\t'))
         {
