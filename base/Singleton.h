@@ -1,3 +1,7 @@
+/*
+ * fileName: Singleton.h 
+ * 单例模式
+ * */
 #pragma once
 #include <mutex>
 
@@ -18,9 +22,12 @@ public:
         return *_value;
     }
 private:
+    // 构造函数私有化 这样就没办法在类外创建对象
+    // 所以需要提供一个静态方法 获取实例，如果实例不存在，需要创建
     Singleton()
     {}
 
+    // c++11 的新玩法，禁止掉拷贝构造函数和赋值运算符重载
     Singleton(const Singleton& singleton) = delete ;
     Singleton& operator= (const Singleton& singleton) = delete;
 
