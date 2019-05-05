@@ -164,8 +164,9 @@ namespace FileUtil
                 return err;
             }
 
-        // Read at maxium kBufferSize into _buf
+        // Read at maxium kBufferSize(64K) into _buf
         // return errno
+        // size: 输出型参数，保存实际读出的字节数
         int readToBuffer(int * size)
         {
             int err = _err;
@@ -188,6 +189,8 @@ namespace FileUtil
             return err;
         }
 
+        // buffer函数，作为一个接口，可以在类外拿到类的成员变量 _buf 
+        // 只是没法修改，因为返回值类型是 const char * 类型
         const char* buffer() const
         {
             return _buf;
@@ -222,28 +225,38 @@ namespace FileUtil
                                              std::string* content,
                                              int64_t*, int64_t*, int64_t*);
 
+
+    // AppendFile类 负责将数据追加到文件末尾
     class AppendFile
     {
     public:
+        // AppendFile类的构造函数
+        // 它被 explicit 关键字修饰 -- 禁止隐式类型转换
         explicit AppendFile(const std::string& fileName)
             : _fp(::fopen(fileName.c_str(), "ae"))
             , _writtenBytes(0)
         {
             assert(_fp);
+            // 设置行缓冲
             ::setbuffer(_fp, _buffer, sizeof(_buffer));
         }
 
+        // 析构函数，关闭文件
         ~AppendFile()
         {
             ::fclose(_fp);
         }
 
+        // 追加文件
         void append(const char* logLine, const size_t len)
         {
+            // 这里调用的 write 函数，是自己封装的 私有成员函数
             ssize_t n = write(logLine, len);
+            // 如果一次性没有写完，就循环写入，直到写完所有数据
             size_t  remain = len - n;
             while(remain > 0)
             {
+                // 下一次写数据的起始位置，logLine+n
                 size_t x = write(logLine + n, remain);
                 if(x == 0)
                 {
@@ -261,11 +274,13 @@ namespace FileUtil
             _writtenBytes += len;
         }
 
+        // 直接封装的 fflush 函数
         void flush()
         {
             ::fflush(_fp);
         }
 
+        // 获取已写入的字节数
         size_t writtenBytes() const
         {
             return _writtenBytes;
@@ -274,6 +289,7 @@ namespace FileUtil
     public:
         size_t write(const char* logLine, size_t len)
         {
+            // 调用 fwrite_unlocked 不是线程安全的
             return ::fwrite_unlocked(logLine, 1, len, _fp);
         }
 
