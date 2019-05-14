@@ -2,11 +2,12 @@
 #include <string>
 #include <vector>
 
-class Solution
-{
-public:
-    bool isnumber(int x)
-    {
+using std::vector;
 
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        
     }
-}
+};
+
