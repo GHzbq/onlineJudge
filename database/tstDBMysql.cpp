@@ -10,13 +10,13 @@ void test()
     std::string strHost = "127.0.0.1";
     std::string strUser = "root";
     std::string strPwd  = "Root@123" ;
-    std::string strDBName = "books";
+    std::string strDBName = "test";
     if(!pConn->initialize(strHost, strUser, strPwd, strDBName))
     {
         LOG(util::ERROR) << "initialize db failed, please check params." << std::endl; 
         return;
     }
-    std::string sql = "select * from label;";
+    std::string sql = "select * from compile;";
     dataBaseMysql::QueryResult* pResult = pConn->query(sql);
     if(!pResult)
     {
