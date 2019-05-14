@@ -119,8 +119,11 @@ struct MultipartFile {
 };
 typedef std::multimap<std::string, MultipartFile> MultipartFiles;
 
+/**
+ * http协议请求格式
+ * */
 struct Request {
-    std::string    version;
+    std::string    version; // 
     std::string    method;
     std::string    target;
     std::string    path;
