@@ -21,7 +21,7 @@ public:
             tableDict->SetValue("star", question.star);
         }
         google::Template* tpl;
-        tpl = google::Template::GetTemplate("./template/all_questions.html", google::DO_NOT_STRIP);
+        tpl = google::Template::GetTemplate("./systemPage/all_questions1.html", google::DO_NOT_STRIP);
         tpl->Expand(html,&dict);
 
     }
@@ -42,15 +42,58 @@ public:
     }
 
     static void renderResult(const std::string& strStdout, const std::string& reason, 
-                             std::string * html)
+                             const std::string& strStderr, std::string * html)
     {
         google::TemplateDictionary dict("result");
         
         dict.SetValue("stdout", strStdout);
+        dict.SetValue("stderr", strStderr);
         dict.SetValue("header", reason);
         
         google::Template* tpl;
         tpl = google::Template::GetTemplate("./template/result.html", google::DO_NOT_STRIP);
         tpl->Expand(html,&dict);
+    }
+
+    static void renderCompileErrorResult(const std::string& strError, const std::string& reason, 
+                             std::string * html)
+    {
+        google::TemplateDictionary dict("compileErrorResult");
+        
+        dict.SetValue("error", strError);
+        dict.SetValue("header", reason);
+        
+        google::Template* tpl;
+        tpl = google::Template::GetTemplate("./template/compileErrorResult.html", google::DO_NOT_STRIP);
+        tpl->Expand(html,&dict);
+#if __DEBUG_ON__
+        LOG(util::DEBUG) << "html = [\n" << *html << "\n]\n";
+#endif
+    }
+
+    static void renderRunErrorResult(const std::string& strError, const std::string& reason,
+                                     std::string* html)
+    {
+        google::TemplateDictionary dict("runErrorResult");
+        
+        dict.SetValue("error", strError);
+        dict.SetValue("header", reason);
+
+        google::Template* tpl;
+        tpl = google::Template::GetTemplate("./template/runErrorResult.html", google::DO_NOT_STRIP);
+        tpl->Expand(html, &dict);
+    }
+
+    static void renderUnknownErrorResult(const std::string& strError, const std::string& reason,
+                                     std::string* html)
+    {
+        google::TemplateDictionary dict("unknownErrorResult");
+        
+        dict.SetValue("error", strError);
+        dict.SetValue("header", reason);
+
+        google::Template* tpl;
+        tpl = google::Template::GetTemplate("./template/unknownErrorResult.html", google::DO_NOT_STRIP);
+        tpl->Expand(html, &dict);
     }
 };
