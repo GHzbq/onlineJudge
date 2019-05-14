@@ -71,7 +71,8 @@ public:
         return ret;
     }
 
-    static bool compilerAndRun(const Json::Value& req/* 输入型参数 */, Json::Value* resp/* 输出型参数 */)
+    // error,0 正确编译运行，1 编译出错 ， 2 运行出错, 3 其他错误("code" = "")
+    static int compilerAndRun(const Json::Value& req/* 输入型参数 */, Json::Value* resp/* 输出型参数 */)
     {
         // 1. 根据请求对象，生成源代码文件
         if(req["code"].empty())
@@ -79,7 +80,7 @@ public:
             (*resp)["error"] = 3;
             (*resp)["reason"] = "code empty";
             LOG(util::INFO) << "code empty" << std::endl;
-            return false;
+            return 3;
         }
         const std::string& code = req["code"].asString();
 #if __DEBUG_ON__
@@ -92,6 +93,7 @@ public:
  
         if(!req["stdin"].empty())
         {
+            // TODO: 假如某道题有输入怎么办？
             ;
         }
         // 2. 调用g++进行编译(fork + exec) 生成可执行程序
@@ -101,10 +103,17 @@ public:
         {
             (*resp)["error"] = 1;
             std::string reason;
-            util::fileUtil::read(compileErrorPath(fileName), &reason);
+            std::string compileFileName = compileErrorPath(fileName);
+            LOG(util::INFO) << fileName << " compile error" << std::endl;
+#if __DEBUG_ON__
+            LOG(util::DEBUG) << "compileFileName = " << compileFileName << std::endl;
+#endif
+            util::fileUtil::read(compileFileName, &reason);
             (*resp)["reason"] = reason;
-            LOG(util::INFO) << "fileName compile error" << std::endl;
-            return false;
+#if __DEBUG_ON__
+            LOG(util::DEBUG) << "reason = " << reason << std::endl;
+#endif
+            return 1; // 编译出错
         }
         // 3. 调用可执行程序，把标准输入记录到文件，然后把文件中内容重定向到可执行程序
         //    可执行程序的标准输出和标准错误也需要重定向记录到文件中
@@ -114,7 +123,7 @@ public:
             (*resp)["error"] = 2;
             (*resp)["reason"] = "program exit by signo: " + std::to_string(signo);
             LOG(util::INFO) << "program exit by signo: " + std::to_string(signo) << std::endl;
-            return false;
+            return 2; // 运行出错
         }
         // 4. 把程序的最终结果，构造resp对象进行返回
         (*resp)["error"] = 0;
@@ -127,7 +136,7 @@ public:
         (*resp)["stderr"] = strStderr;
         LOG(util::INFO) << "program " << fileName << " Done" << std::endl;
 
-        return true;
+        return 0; // 程序正确运行得到结果
     }
 private:
     static std::string writeTmpFile(const std::string& code)
