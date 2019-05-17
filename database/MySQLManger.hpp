@@ -60,13 +60,13 @@ public:
         : _strCharactSet(charactSet)
     {
         // 初始化表
-        // 1. 编译信息表
+        // 1. 记录编译错误的提交号(ID)及原因
         {
             STableInfo info;
 
             info._strName = "compileinfo";
-            info._mapFiled["solution_id"] = { "solution_id", "int(11) NOT NULL DEFAULT 0 comment '题目ID'", "int(11)"};
-            info._mapFiled["error"] = {"error", "text comment '错误信息'", "text"};
+            info._mapFiled["solution_id"] = { "solution_id", "int(11) NOT NULL DEFAULT 0 comment '提交ID, 主键'", "int(11)"};
+            info._mapFiled["error"] = {"error", "text comment '编译错误信息'", "text"};
 
             info._strKeyString = "PRIMARY KEY (solution_id) comment '将 solution_id 设置为主键'";
             info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8 comment '设置存储引擎为 MyISAM 字符集为 utf8'";
@@ -74,15 +74,15 @@ public:
             _vecTableInfo.push_back(info);
         }
 
-        // 2. 登录信息表
+        // 2. 登录日志（不管是否登入成功都记录）
         {
             STableInfo info;
             info._strName = "loginlog";
 
-            info._mapFiled["user_id"] = {"user_id", "varchar(48) NOT NULL DEFAULT '' comment '用户提交账号'", "varchar(48)"};
-            info._mapFiled["password"] = {"password", "varchar(40) DEFAULT NULL comment '用户提交的密码'", "varchar(48)"};
-            info._mapFiled["ip"] = {"ip", "varchar(46) DEFAULT NULL comment '本次提交用户的IP地址'", "varchar(46)"};
-            info._mapFiled["time"] = {"time", "datetime DEFAULT NULL comment '提交的时间'", "datetime"};
+            info._mapFiled["user_id"] = {"user_id", "varchar(48) NOT NULL DEFAULT '' comment '用户ID'", "varchar(48)"};
+            info._mapFiled["password"] = {"password", "varchar(40) DEFAULT NULL comment '用户提交的密码(不一定正确)'", "varchar(48)"};
+            info._mapFiled["ip"] = {"ip", "varchar(46) DEFAULT NULL comment '本次用户登录IP地址'", "varchar(46)"};
+            info._mapFiled["time"] = {"time", "datetime DEFAULT NULL comment '用户登入时间'", "datetime"};
 
             info._strKeyString = "KEY `user_log_index` (`user_id`,`time`)";
             info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8";
@@ -90,28 +90,28 @@ public:
             _vecTableInfo.push_back(info);
         }
 
-        // 3. OJ题目信息表
+        // 3. OJ题目表
         {
             STableInfo info;
             info._strName = "problem";
 
-            info._mapFiled["problem_id"] = {"problem_id", "int(11) NOT NULL AUTO_INCREMENT comment '题目ID 自增长'", "int(11)"};
+            info._mapFiled["problem_id"] = {"problem_id", "int(11) NOT NULL AUTO_INCREMENT comment '题目编号，主键'", "int(11)"};
             info._mapFiled["title"] = {"title", "varchar(200) NOT NULL DEFAULT '' comment '题目标题'", "varchar(200)"};
             info._mapFiled["description"] = {"description", "text comment '题目的描述'", "text"};
-            info._mapFiled["input"] = {"input", "text comment '输入描述'", "text"};
-            info._mapFiled["output"] = {"output", "text comment '输出描述'", "text"};
-            info._mapFiled["sample_input"] = {"sample_input", "text comment '样例输入'", "text"};
-            info._mapFiled["sample_output"] = {"sample_output", "text comment '样例输出'", "text"};
-            info._mapFiled["spj"] = {"spj", "char(1) NOT NULL DEFAULT '0'", "char(1)"};
-            info._mapFiled["hint"] = {"hint", "text", "text"};
-            info._mapFiled["source"] = {"source", "varchar(100) DEFAULT NULL", "varchar(100)"};
-            info._mapFiled["in_date"] = {"in_date", "datetime DEFAULT NULL", "datetime"};
-            info._mapFiled["time_limit"] = {"time_limit", "int(11) NOT NULL DEFAULT 0 comment '本题的时间限制'", "int(11)"};
-            info._mapFiled["memory_limit"] = {"memory_limit", "int(11) NOT NULL DEFAULT 0 comment '本题的内存限制'", "int(11)"};
-            info._mapFiled["defunct"] = {"defunct", "char(1) NOT NULL DEFAULT 'N'", "char(1)"};
-            info._mapFiled["accepted"] = {"accepted", "int(11) DEFAULT '0' comment '通过人数'", "int(11)"};
-            info._mapFiled["submit"] = {"submit", "int(11) DEFAULT '0' comment '提交人数'", "int(11)"};
-            info._mapFiled["solved"] = {"solved", "int(11) DEFAULT '0' comment '解决人数'", "int(11)"};
+            info._mapFiled["input"] = {"input", "text comment '输入说明'", "text"};
+            info._mapFiled["output"] = {"output", "text comment '输出说明'", "text"};
+            info._mapFiled["sample_input"] = {"sample_input", "text comment '输入参照'", "text"};
+            info._mapFiled["sample_output"] = {"sample_output", "text comment '输出参照'", "text"};
+            info._mapFiled["spj"] = {"spj", "char(1) NOT NULL DEFAULT '0' comment '是否为特殊题目'", "char(1)"};
+            info._mapFiled["hint"] = {"hint", "text comment '暗示'", "text"};
+            info._mapFiled["source"] = {"source", "varchar(100) DEFAULT NULL comment '题目来源'", "varchar(100)"};
+            info._mapFiled["in_date"] = {"in_date", "datetime DEFAULT NULL comment '加入时间'", "datetime"};
+            info._mapFiled["time_limit"] = {"time_limit", "int(11) NOT NULL DEFAULT 0 comment '时限(秒)'", "int(11)"};
+            info._mapFiled["memory_limit"] = {"memory_limit", "int(11) NOT NULL DEFAULT 0 comment '空间限制(MByte)'", "int(11)"};
+            info._mapFiled["defunct"] = {"defunct", "char(1) NOT NULL DEFAULT 'N' comment '是否屏蔽'", "char(1)"};
+            info._mapFiled["accepted"] = {"accepted", "int(11) DEFAULT '0' comment '总AC次数'", "int(11)"};
+            info._mapFiled["submit"] = {"submit", "int(11) DEFAULT '0' comment '总提交次数'", "int(11)"};
+            info._mapFiled["solved"] = {"solved", "int(11) DEFAULT '0' comment '解答(未用)'", "int(11)"};
             
             info._strKeyString = "PRIMARY KEY (`problem_id`) comment  '设置 题目ID 为主键'";
             info._strEndineAndCharSet = "ENGINE=MyISAM AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8 comment '设置存储引擎为MyISAM,字符集默认 utf8 , 自增长起始值为1000'";
@@ -119,7 +119,7 @@ public:
             _vecTableInfo.push_back(info);
         }
 
-        // 4. solution 表
+        // 4. solution 表 /* 运行结果记录 */
         {
             STableInfo info;
 
@@ -150,13 +150,13 @@ public:
 
         }
 
-        // source_code 表
+        // source_code 表 /* 记录源代码 */
         {
             STableInfo info;
             info._strName = "source_code";
 
-            info._mapFiled["solution_id"] = {"solution_id", "int(11) NOT NULL", "int(11)"};
-            info._mapFiled["source"] = {"source", "text NOT NULL", "text"};
+            info._mapFiled["solution_id"] = {"solution_id", "int(11) NOT NULL comment '运行ID，主键'", "int(11)"};
+            info._mapFiled["source"] = {"source", "text NOT NULL comment '源代码'", "text"};
 
             info._strKeyString = "PRIMARY KEY (`solution_id`)";
             info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8";
@@ -179,24 +179,24 @@ public:
 
         }
 
-        // users 表
+        // users 表 /* 用户表  */
         {
             STableInfo info;
             info._strName = "users";
 
-            info._mapFiled["user_id"] = {"user_id", "varchar(48) NOT NULL DEFAULT ''", "varchar(48)"};
-            info._mapFiled["email"] = {"email", "varchar(100) DEFAULT NULL", "varchar(100)"};
-            info._mapFiled["submit"] = {"submit", "int(11) DEFAULT '0'", "int(11)"};
-            info._mapFiled["solved"] = {"solved", "int(11) DEFAULT '0'", "int(11)"};
-            info._mapFiled["defunct"] = {"defunct", "char(1) NOT NULL DEFAULT 'N'", "char(1)"};
-            info._mapFiled["ip"] = {"ip", "varchar(46) NOT NULL DEFAULT ''", "varchar(46)"};
-            info._mapFiled["accesstime"] = {"accesstime", "datetime DEFAULT NULL", "datetime"};
-            info._mapFiled["volume"] = {"volume", "int(11) NOT NULL DEFAULT '1'", "int(11)"};
-            info._mapFiled["language"] = {"language", "int(11) NOT NULL DEFAULT '1'", "int(11)"};
-            info._mapFiled["password"] = {"password", "varchar(32) DEFAULT NULL", "varchar(32)"};
-            info._mapFiled["reg_time"] = {"reg_time", "datetime DEFAULT NULL", "datetime"};
-            info._mapFiled["nick"] = {"nick", "varchar(20) NOT NULL DEFAULT ''", "varchar(20)"};
-            info._mapFiled["school"] = {"school", "varchar(20) NOT NULL DEFAULT ''", "varchar(20)"};
+            info._mapFiled["user_id"] = {"user_id", "varchar(48) NOT NULL DEFAULT '' comment '用户ID，主键'", "varchar(48)"};
+            info._mapFiled["email"] = {"email", "varchar(100) DEFAULT NULL comment '用户E-mail'", "varchar(100)"};
+            info._mapFiled["submit"] = {"submit", "int(11) DEFAULT '0' comment '用户提交次数'", "int(11)"};
+            info._mapFiled["solved"] = {"solved", "int(11) DEFAULT '0' comment '成功次数'", "int(11)"};
+            info._mapFiled["defunct"] = {"defunct", "char(1) NOT NULL DEFAULT 'N' comment '是否屏蔽'", "char(1)"};
+            info._mapFiled["ip"] = {"ip", "varchar(46) NOT NULL DEFAULT '' comment '用户注册ID'", "varchar(46)"};
+            info._mapFiled["accesstime"] = {"accesstime", "datetime DEFAULT NULL comment '用户注册时间'", "datetime"};
+            info._mapFiled["volume"] = {"volume", "int(11) NOT NULL DEFAULT '1' comment '页码(表示上次用户看到第几页)'", "int(11)"};
+            info._mapFiled["language"] = {"language", "int(11) NOT NULL DEFAULT '1' comment '语言'", "int(11)"};
+            info._mapFiled["password"] = {"password", "varchar(32) DEFAULT NULL comment '密码(目前是未加密的，未来考虑加密)'", "varchar(32)"};
+            info._mapFiled["reg_time"] = {"reg_time", "datetime DEFAULT NULL comment '用户注册时间'", "datetime"};
+            info._mapFiled["nick"] = {"nick", "varchar(20) NOT NULL DEFAULT '' comment '昵称'", "varchar(20)"};
+            info._mapFiled["career"] = {"career", "varchar(20) NOT NULL DEFAULT '' comment '职业'", "varchar(20)"};
             
             info._strKeyString = "PRIMARY KEY (`user_id`)";
             info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8";
@@ -210,13 +210,13 @@ public:
             STableInfo info;
             info._strName = "online";
 
-            info._mapFiled["hash"] = {"hash", "varchar(32) collate utf8_unicode_ci NOT NULL", "varchar(32)"};
-            info._mapFiled["ip"] = {"ip", "varchar(46) character set utf8 NOT NULL default ''", "varchar(32)"};
-            info._mapFiled["ua"] = {"ua", "varchar(255) character set utf8 NOT NULL default ''", "varchar(255)"};
-            info._mapFiled["refer"] = {"refer", "varchar(255) collate utf8_unicode_ci default NULL", "varchar(255)"};
-            info._mapFiled["lastmove"] = {"lastmove", "int(10) NOT NULL", "int(10)"};
-            info._mapFiled["firsttime"] = {"firsttime", "int(10) default NULL", "int(10)"};
-            info._mapFiled["uri"] = {"uri", "varchar(255) collate utf8_unicode_ci default NULL", "varchar(255)"};
+            info._mapFiled["hash"] = {"hash", "varchar(32) collate utf8_unicode_ci NOT NULL comment '主键'", "varchar(32)"};
+            info._mapFiled["ip"] = {"ip", "varchar(46) character set utf8 NOT NULL default '' comment 'IP地址'", "varchar(32)"};
+            info._mapFiled["ua"] = {"ua", "varchar(255) character set utf8 NOT NULL default '' comment '浏览器发出的浏览器相关的浏览器标识字符串'", "varchar(255)"};
+            info._mapFiled["refer"] = {"refer", "varchar(255) collate utf8_unicode_ci default NULL comment '浏览器发出的，一个表示访问的上个页面的网址'", "varchar(255)"};
+            info._mapFiled["lastmove"] = {"lastmove", "int(10) NOT NULL comment '最后一次修改时间'", "int(10)"};
+            info._mapFiled["firsttime"] = {"firsttime", "int(10) default NULL comment '第一次访问时间'", "int(10)"};
+            info._mapFiled["uri"] = {"uri", "varchar(255) collate utf8_unicode_ci default NULL comment '统一资源指示器，包括URL和URN两种'", "varchar(255)"};
             
             info._strKeyString = "PRIMARY KEY  (`hash`), UNIQUE KEY `hash` (`hash`)";
             info._strEndineAndCharSet = "ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
@@ -224,13 +224,13 @@ public:
             _vecTableInfo.push_back(info);
         }
 
-        // runtimeinfo
+        // runtimeinfo /* 运行错误信息 */
         {
             STableInfo info;
             info._strName = "runtimeinfo";
 
-            info._mapFiled["solution_id"] = {"solution_id", "int(11) NOT NULL DEFAULT 0", "int(11)"};
-            info._mapFiled["error"] = {"error", "text", "text"};
+            info._mapFiled["solution_id"] = {"solution_id", "int(11) NOT NULL DEFAULT 0 comment '运行ID，主键'", "int(11)"};
+            info._mapFiled["error"] = {"error", "text comment '错误记录'", "text"};
 
             info._strKeyString = "PRIMARY KEY (`solution_id`)";
             info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8";
@@ -239,13 +239,13 @@ public:
 
         }
 
-        // custominput 表
+        // custominput 表 /* 用于IDE */
         {
             STableInfo info;
             info._strName = "custominput";
 
-            info._mapFiled["solution_id"] ={"solution_id", "int(11) NOT NULL DEFAULT 0", "int(11)"};
-            info._mapFiled["input_text"] = {"input_text", "text", "text"};
+            info._mapFiled["solution_id"] ={"solution_id", "int(11) NOT NULL DEFAULT 0 comment '用户ID，主键'", "int(11)"};
+            info._mapFiled["input_text"] = {"input_text", "text comment '输入测试数据'", "text"};
 
             info._strKeyString = "PRIMARY KEY (`solution_id`)";
             info._strEndineAndCharSet = "ENGINE=MyISAM DEFAULT CHARSET=utf8";
