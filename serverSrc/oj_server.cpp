@@ -1,6 +1,6 @@
 #include <jsoncpp/json/json.h>
-#include "httplib.h"
-#include "util.hpp"
+#include "../include/httplib.h"
+#include "../base/util.hpp"
 #include "compiler.hpp"
 #include "oj_model.hpp"
 #include "oj_view.hpp"
@@ -100,6 +100,20 @@ void test()
                     ojView::renderUnknownErrorResult(resp_json["error"].asString(),
                                                      resp_json["reason"].asString(), &html);
                 }
+                resp.set_content(html, "text/html");
+                });
+
+    server.Get("/loginPage", [](const httplib::Request& req, httplib::Response& resp){
+               (void)req;
+               std::string html;
+               ojView::showLoginPage(&html);
+               resp.set_content(html, "text/html");
+               });
+
+    server.Post("/login", [](const httplib::Request& req, httplib::Response& resp){
+                std::string username = req.matches[1].str();
+                std::cout << "username = " << username << std::endl;
+                std::string html = "<html><h1>登录成功</h1></html>";
                 resp.set_content(html, "text/html");
                 });
 
