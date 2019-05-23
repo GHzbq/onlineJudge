@@ -1,6 +1,7 @@
 #pragma once
 #include <google/template.h>
 #include "oj_model.hpp"
+#include "../base/util.hpp"
 
 class ojView
 {
@@ -94,6 +95,14 @@ public:
 
         google::Template* tpl;
         tpl = google::Template::GetTemplate("./template/unknownErrorResult.html", google::DO_NOT_STRIP);
+        tpl->Expand(html, &dict);
+    }
+
+    static void showLoginPage(std::string* html)
+    {
+        google::TemplateDictionary dict("loginPage");
+        google::Template* tpl;
+        tpl = google::Template::GetTemplate("./systemPage/login.html", google::DO_NOT_STRIP);
         tpl->Expand(html, &dict);
     }
 };
