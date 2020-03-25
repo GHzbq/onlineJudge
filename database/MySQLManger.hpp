@@ -253,8 +253,6 @@ public:
             _vecTableInfo.push_back(info);
 
         }
-
-
     }
 
     virtual ~mysqlManager()
@@ -383,7 +381,7 @@ private:
         int nErrno = 0;
 
         std::stringstream ss;
-        ss << "create database " << _strDBName << ";";
+        ss << "create database " << _strDBName;
         if(_pConnect->execute(ss.str().c_str(), uAffectedCount, nErrno))
         {
             if(uAffectedCount == 1)

@@ -11,7 +11,7 @@
 #include <cstdarg> /* 解析可变参数列表 */
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
-#include "../serverSrc/util.hpp"
+#include "../base/util.hpp"
 
 /* 命名空间 */
 namespace dataBaseMysql 
@@ -515,7 +515,7 @@ namespace dataBaseMysql
          * 构造函数中并不做连接数据库的操作
          * */
         CDatabaseMysql()
-            : m_Mysql(nullptr)
+            : m_Mysql(new MYSQL)
             , m_bInit(false)
         {}
     
@@ -525,12 +525,13 @@ namespace dataBaseMysql
          * */
         ~CDatabaseMysql()
         {
-            if(m_Mysql != nullptr)
-            {
-                if(m_bInit)
-                {
+            if(nullptr != m_Mysql ) {
+                if(true == m_bInit) {
                     mysql_close(m_Mysql);
+                    m_bInit = false;
                 }
+                delete m_Mysql;
+                m_Mysql = nullptr;
             }
         }
     
@@ -543,46 +544,43 @@ namespace dataBaseMysql
                          const std::string& pwd,
                          const std::string& dbname)
         {
-            /*
-             * 如果数据库已经连接了，就将其关闭之
-             * 并再次根据参数，重连一次
-             * */
+            // 如果数据库已经连接了，就将其关闭之
+            // 并再次根据参数，重连一次
             // TODO: 是否需要判断一下，本次传参和上次连接的参数相同？
-            if(m_bInit)
-            {
+            if(true == m_bInit) {
                 mysql_close(m_Mysql);
             }
 
-            /* 
-             * 调用mysql_init()函数，返回一个操作数据库的句柄
-             * mysql_real_connect()函数：尝试在主机上建立到MySQL数据库引擎的连接
-             * */
-            m_Mysql = mysql_init(m_Mysql);
-            m_Mysql = mysql_real_connect(m_Mysql, host.c_str(), user.c_str(), 
-                                         pwd.c_str(), dbname.c_str(), 0, nullptr, 0);
-            m_DBInfo._strHost = host;
-            m_DBInfo._strUser = user;
-            m_DBInfo._strPwd  = pwd;
-            m_DBInfo._strDBName = dbname;
-
-            if(m_Mysql)
-            {
-                /* 设置查询字符集为utf8 */
-                mysql_query(m_Mysql, "set names utf8");
-                m_bInit = true;
-                return true;
-            }
-            else
-            {
-                /*
-                 * 数据库连接失败，打印日志，返回false
-                 * */
-                LOG(util::ERROR) << "Could not connect to MYSQL database: " << mysql_error(m_Mysql) << std::endl;
-                mysql_close(m_Mysql);
+            // 调用mysql_init()函数，初始化MYSQL
+            // mysql_real_connect()函数：尝试在主机上建立到MySQL数据库引擎的连接
+            auto ret = mysql_init(m_Mysql);
+            if (nullptr == ret) {
+                LOG(util::ERROR) << "mysql_init failed, ret is nullptr" << std::endl;
                 return false;
             }
-            LOG(util::ERROR) << "CDatabaseMysql::initialize, init false" << std::endl;
-            return false;
+            ret = mysql_real_connect(m_Mysql, host.c_str(), user.c_str(), 
+                                         pwd.c_str(), dbname.c_str(), 0, nullptr, 0);
+
+            if(nullptr != ret) {
+                LOG(util::INFO) << "mysql_real_connect succeed" << std::endl;
+                // 数据库连接成功 设置m_DBInfo
+                m_DBInfo._strHost = host;
+                m_DBInfo._strUser = user;
+                m_DBInfo._strPwd  = pwd;
+                m_DBInfo._strDBName = dbname;
+                // 设置查询字符集为utf8 
+                int iRet = mysql_query(m_Mysql, "set names utf8");
+                if (0 != iRet) {
+                    LOG(util::ERROR) << "mysql_query failed, errno = " << mysql_errno(m_Mysql) << ", error = " << mysql_error(m_Mysql) << std::endl;
+                    return false;
+                }
+                m_bInit = true;
+                return true;
+            } else {
+                 // 数据库连接失败，打印日志，返回false
+                LOG(util::ERROR) << "mysql_real_connect failed, errno = " << mysql_errno(m_Mysql) << ", error = " << mysql_error(m_Mysql) << std::endl;
+                return false;
+            }
         }
 
         /*
@@ -590,59 +588,38 @@ namespace dataBaseMysql
          * */
         QueryResult* query(const char* sql)
         {
-            if(!m_Mysql)
-            {
-                /*
-                 * 数据库未连接
-                 * 调用initialize函数进行初始化
-                 * */
+            if(false == m_bInit) {
+                // 数据库未初始化
+                // 调用initialize函数进行初始化
                 LOG(util::INFO) << "mysql is disconnected!" << std::endl; 
                 if(false == initialize(m_DBInfo._strHost, m_DBInfo._strUser, 
-                                       m_DBInfo._strPwd, m_DBInfo._strDBName))
-                {
-                    /*
-                     * 数据库初始化失败，返回 nullptr
-                     * */
+                                       m_DBInfo._strPwd, m_DBInfo._strDBName)) {
+                    //  数据库初始化失败，返回 nullptr
                     return nullptr;
                 }                   
             }
 
-            /* 
-             * 未知错误导致 m_Mysql 为 nullptr 也返回nullptr吧
-             * */
-            if(!m_Mysql)
+            if(nullptr == m_Mysql)
                 return nullptr;
 
-            /*
-             * 调用 mysql_real_query() 函数后，查询结果需要调用 mysql_store_result() 函数获取 
-             * 而 mysql_store_result() 函数，返回一个指向查询结果的指针 ---- MYSQL_RES
-             * */
+            //  调用 mysql_real_query() 函数后，查询结果需要调用 mysql_store_result() 函数获取 
+            //  而 mysql_store_result() 函数，返回一个指向查询结果的指针 ---- MYSQL_RES
             MYSQL_RES* result = nullptr;
             uint64_t rowCount = 0;
             uint32_t fieldCount = 0;
             {
-                /*
-                 * 调用 mysql_real_query() 函数对 SQL语句 进行查询
-                 * 成功返回0，失败返回非0
-                 * */
-                LOG(util::INFO) << sql << std::endl;
+                // 调用 mysql_real_query() 函数对 SQL语句 进行查询
+                // 成功返回0，失败返回非0
+                LOG(util::INFO) << "sql = " << sql << std::endl;
                 int iTempRet = mysql_real_query(m_Mysql, sql, strlen(sql));
-                if(iTempRet)
-                {
-                    /*
-                     * 查询失败，分析原因
-                     * */
+                if(0 != iTempRet) {
+                    // 查询失败
                     unsigned int uErrno = mysql_errno(m_Mysql);
-                    LOG(util::ERROR) << "mysql is abnormal, errno : " << uErrno << std::endl;
-                    /*
-                     * CR_SERVER_GONE_ERROR 客户端无法向服务器发送请求
-                     * 由于后台服务器通常与MySQL交互使用长连接的方式，如果会话timeout，MySQL会对当前连接进行关闭
-                     * */
-                    if(CR_SERVER_GONE_ERROR == uErrno)
-                    {
-                        /*
-                         * 既然被关闭连接了，就调用initialize()函数再次连接
-                         * */
+                    LOG(util::ERROR) << "mysql is abnormal, errno = " << uErrno << std::endl;
+                    // CR_SERVER_GONE_ERROR 客户端无法向服务器发送请求
+                    // 由于后台服务器通常与MySQL交互使用长连接的方式，如果会话timeout，MySQL会对当前连接进行关闭
+                    if(CR_SERVER_GONE_ERROR == uErrno) {
+                        // 既然被关闭连接了，就调用initialize()函数再次连接
                         LOG(util::ERROR) << "mysql is disconnected!" << std::endl; 
                         if(false == initialize(m_DBInfo._strHost, m_DBInfo._strUser,
                                                m_DBInfo._strPwd, m_DBInfo._strDBName))

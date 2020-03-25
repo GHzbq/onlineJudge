@@ -71,7 +71,6 @@ void test()
                 if(ret == 0) // 0. 正确编译运行
                 {
                     // 5. 根据最终结果构造最终的网页
-                    // TODO 如果编译出错了 这里没有处理
                     ojView::renderResult(resp_json["stdout"].asString(), 
                                          resp_json["reason"].asString(), 
                                          resp_json["stderr"].asString(), &html);
@@ -79,7 +78,6 @@ void test()
                 else if (ret == 1) // 1. 编译出错
                 {
                     // 6. 编译出错了
-                    std::string html;
                     const std::string& reason = resp_json["reason"].asString();
 #if __DEBUG_ON__
                     LOG(util::DEBUG) << "reason = " << reason << std::endl;
@@ -89,8 +87,6 @@ void test()
                 }
                 else if (ret == 2) // 2. 运行出错
                 {
-
-                    std::string html;
                     ojView::renderRunErrorResult(resp_json["error"].asString(),
                                                  resp_json["reason"].asString(), &html);
                 }
@@ -119,9 +115,9 @@ void test()
 
     // 设置 http 服务器的静态页面
     server.set_base_dir("./systemPage");
-    // 设置服务器的监听模式 端口为 9092
+    // 设置服务器的监听模式 端口为 9652
     // 公网ip是 47.102.208.185
-    server.listen("0.0.0.0", 9092);
+    server.listen("0.0.0.0", 9652);
 }
 
 int main()
