@@ -115,9 +115,9 @@ void test()
 
     // 设置 http 服务器的静态页面
     server.set_base_dir("./systemPage");
-    // 设置服务器的监听模式 端口为 9652
+    // 设置服务器的监听模式
     // 公网ip是 47.102.208.185
-    server.listen("0.0.0.0", 9652);
+    server.listen("0.0.0.0", 9655);
 }
 
 int main()
